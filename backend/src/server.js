@@ -4,9 +4,20 @@ import app from "./app.js";
 import { connectDB } from "./config/db.js";
 import { validateEnv } from "./config/env.js";
 import { startTrashPurge } from "./services/memoryService.js";
-
+import express from "express";
+import cors from "cors";
 const port = process.env.PORT || 5000;
 
+const app = express();
+
+app.use(cors({
+  origin: "https://simple-memory.onrender.com",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+app.use(express.json());
 try {
   validateEnv();
   await connectDB();
