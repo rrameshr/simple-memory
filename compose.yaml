@@ -1,0 +1,39 @@
+services:
+  mongo:
+    image: mongo:8
+    container_name: couple-memories-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: couple-memories-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongo:27017/couple_memories
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}   # set true once you serve over HTTPS
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: couple-memories-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
